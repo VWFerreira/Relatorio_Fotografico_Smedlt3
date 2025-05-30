@@ -11,7 +11,9 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const storage = firebase.storage(); // ← NOVO: Firebase Storage
+const storage = firebase
+    .app()
+    .storage("gs://relatoriosengpac.firebasestorage.app");
 
 let formularios = [];
 let idAtual = null;
