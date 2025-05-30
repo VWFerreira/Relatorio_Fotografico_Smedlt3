@@ -1,0 +1,548 @@
+/* ====== BASE ====== */
+* {
+    font-family: "Roboto", sans-serif;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #fff;
+    color: #000;
+    padding: 20px;
+}
+
+.container {
+    flex: 1;
+    padding: 20px;
+    margin: auto;
+    background: #fff;
+    max-width: unset;
+}
+
+/* ====== HEADER ====== */
+header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: 2px solid #000;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    background: #fdfdfd;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+header img {
+    height: 100px;
+    flex-shrink: 0;
+}
+
+header .titulo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+header .titulo h1,
+header .titulo h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: bold;
+    color: #000;
+}
+
+/* ====== FORMULÁRIO (DADOS DA OBRA) ====== */
+.dados-obra {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px; /* MENOR espaçamento entre linhas */
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 30px;
+    background: #f9f9f9;
+}
+
+.dados-obra label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #333;
+}
+
+.dados-obra input,
+.dados-obra select,
+.dados-obra textarea.input-menor {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.dados-obra input:focus,
+.dados-obra select:focus,
+.dados-obra textarea.input-menor:focus {
+    border-color: #0d6efd;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+}
+
+.dados-obra select {
+    background-color: #fff;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='%23333'%20d='M2%200L0%202h4L2%200zM2%205L0%203h4L2%205z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    appearance: none;
+}
+
+/* ====== TEXTOS RELATÓRIO ====== */
+.texto {
+    border: 2px solid #000;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    padding: 20px;
+    margin-bottom: 30px;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+}
+
+fieldset {
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 30px 20px 20px 20px;
+    margin-bottom: 30px;
+    background: #f9f9f9;
+    position: relative;
+}
+
+legend {
+    font-weight: bold;
+    font-size: 16px;
+    text-transform: uppercase;
+    color: #000;
+    padding: 0 px;
+    margin: 0 auto;
+    line-height: 1;
+    background: #f9f9f9;
+    position: relative;
+    top: 0; /* Centralizado na borda superior */
+    left: 10px; /* Pequeno recuo da esquerda */
+}
+.titulo-secao {
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0px 0 -10px 1px; /* espaço externo entre blocos */
+    background: #fff;
+    display: inline-block;
+    padding: 0 6px;
+    z-index: 2;
+    position: relative;
+}
+
+/* ====== GALERIA ====== */
+.galeria {
+    margin-top: 20px;
+}
+
+/* Cada bloco de 4 fotos fica agrupado */
+.bloco-4-fotos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 30px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Força quebra de página antes de cada grupo de 4, exceto o primeiro */
+.bloco-4-fotos:not(:first-of-type) {
+    page-break-before: always;
+    break-before: page;
+}
+
+.foto-card {
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 10px;
+    height: 13.5cm;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    page-break-inside: avoid;
+    overflow: hidden;
+}
+
+.foto-card img {
+    display: none;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    background: #fff;
+    border: 1px solid #999;
+    border-radius: 6px;
+    margin-bottom: 0;
+    flex-grow: 1;
+}
+
+.foto-card textarea,
+.foto-card .descricao-servico {
+    font-size: 12px !important;
+    border: none !important;
+    border-bottom: 1px solid #000 !important;
+    background: transparent !important;
+    color: #000 !important;
+    resize: none !important;
+    overflow: hidden !important; /* Impede scroll */
+    min-height: 1em;
+    line-height: 1.4;
+    padding: 4px;
+    width: 100%;
+    height: auto; /* Permite expandir */
+}
+
+.foto-card textarea:focus,
+.foto-card .descricao-servico:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+    outline: none;
+}
+
+.foto-card input[type="file"] {
+    display: none;
+}
+
+/* ====== BOTÕES ====== */
+button,
+.upload-label {
+    padding: 12px 24px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(161, 19, 19, 0);
+}
+
+.upload-label {
+    display: inline-block;
+    background: linear-gradient(135deg, #0d6efd, #004ecb);
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 8px auto;
+    display: block;
+    max-width: 100%;
+    text-align: center;
+}
+
+/* ====== INPUTS ESPECIAIS ====== */
+.input-menor {
+    width: 90%;
+}
+
+.input-pequeno {
+    max-width: 140px;
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+.input-inline {
+    display: inline-block !important;
+    border: none !important;
+    border-bottom: 1px solid #000 !important;
+    background: transparent !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    padding: 2px 4px !important;
+    min-width: 300px !important;
+    max-width: 100% !important;
+    text-align: center;
+}
+
+.input-data {
+    border: none;
+    border-bottom: 1px solid #000;
+    background: transparent;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 2px 4px;
+    width: 120px; /* Aumentado */
+    text-align: center;
+    outline: none;
+}
+
+.input-data:focus {
+    border-color: #000000;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+}
+
+/* ====== LAYOUT ====== */
+.layout {
+    display: grid;
+    grid-template-columns: 340px 1fr 100px;
+    gap: 20px;
+}
+
+/* ====== LATERAL ESQUERDA ====== */
+.titulo-formularios {
+    font-weight: bold;
+    font-size: 1.5rem; /* aumenta o tamanho do texto */
+    color: #343a40;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.titulo-formularios::before {
+    content: "";
+    display: inline-block;
+    width: 28px; /* aumenta o tamanho do ícone */
+    height: 28px;
+    background-image: url("https://cdn-icons-png.flaticon.com/128/5569/5569750.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+.painel-formularios h3,
+.painel-formularios h5 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.titulo-formularios::before {
+    content: "";
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-image: url("https://cdn-icons-png.flaticon.com/128/5569/5569750.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+.painel-formularios ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.painel-formularios li {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.painel-formularios li button {
+    margin-right: 6px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+/* ====== LATERAL DIREITA ====== */
+.coluna-imagem-direita {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+}
+
+.coluna-imagem-direita img {
+    width: 5cm;
+    height: 100vh;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* ====== RODAPÉ ====== */
+.rodape-contrato {
+    background: #f0f0f0;
+    color: #070101;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 11px;
+}
+
+.rodape-conteudo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.rodape-logo {
+    height: 50px;
+    width: auto;
+}
+
+/* ====== FORMATO A4 ====== */
+.formulario-a4 {
+    width: 21cm;
+    height: 29.7cm;
+    padding: 20px;
+    background: #fff;
+    margin: auto;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+}
+
+@media print {
+    body,
+    html {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .container,
+    .formulario-a4 {
+        padding: 10px !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        width: auto !important;
+        height: auto !important;
+    }
+
+    .layout {
+        display: block !important;
+    }
+
+    .painel-formularios,
+    .coluna-imagem-direita,
+    .botoes-acao,
+    .upload-label,
+    button,
+    .no-print {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* GALERIA IMPRESSÃO - GARANTIR 4 FOTOS POR PÁGINA */
+    .galeria {
+        display: block;
+    }
+
+    .bloco-4-fotos {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .galeria .bloco-4-fotos:not(:first-child) {
+        page-break-before: always !important;
+        break-before: page !important;
+    }
+
+    .foto-card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    input,
+    select,
+    textarea,
+    .descricao-servico {
+        background: transparent !important;
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        color: #000 !important;
+        resize: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .input-inline,
+    .foto-card textarea,
+    .foto-card .descricao-servico {
+        border: none !important;
+        border-bottom: 1px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        box-shadow: none !important;
+    }
+
+    .quebra-pagina {
+        page-break-before: always !important;
+        break-before: page !important;
+    }
+}
+@media print {
+    .no-print,
+    .no-print * {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
+
+/* BOTÕES PERSONALIZADOS */
+
+.btn-abrir {
+    background: linear-gradient(135deg, #28a745, #218838); /* Verde */
+    color: #fff;
+}
+
+.btn-excluir {
+    background: linear-gradient(135deg, #dc3545, #b02a37); /* Vermelho */
+    color: #fff;
+}
+
+.btn-imprimir {
+    background: linear-gradient(135deg, #6c757d, #5a6268); /* Cinza */
+    color: #fff;
+}
+
+.btn-novo-relatorio {
+    background: linear-gradient(
+        135deg,
+        #20c997,
+        #198754
+    ); /* Verde mais claro */
+    color: #fff;
+}
+
+.btn-adicionar-imagem {
+    background: linear-gradient(135deg, #ffc107, #ff9800); /* Amarelo */
+    color: #000;
+}
+
+.btn-salvar {
+    background: linear-gradient(135deg, #007bff, #0056b3); /* Azul */
+    color: #fff;
+}
+
+.btn-selecionar-imagem {
+    background: linear-gradient(135deg, #0d6efd, #004ecb); /* Azul */
+    color: #fff;
+}
+
+.btn-excluir {
+    background: linear-gradient(135deg, #dc3545, #b02a37); /* Vermelho */
+    color: #fff;
+}
+
+.painel-rel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #f3f4f6;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    max-width: fit-content;
+    margin: 0 auto;
+}
