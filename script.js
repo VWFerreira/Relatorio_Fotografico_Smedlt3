@@ -46,23 +46,53 @@ function configurarDragGlobal() {
     });
 }
 
-function carregarFormularios() {
-    db.collection("formularios")
-        .orderBy("timestamp", "desc")
-        .limit(10)
+function carregarFormularios(todos = false) {
+    const consulta = todos
+        ? db.collection("formularios").orderBy("timestamp", "desc")
+        : db.collection("formularios").orderBy("timestamp", "desc").limit(10);
+
+    // Exibe indicador de carregamento
+    const btnCarregar = document.getElementById("btn-todos-relatorios");
+    if (btnCarregar && todos) {
+        btnCarregar.textContent = "⏳ Carregando...";
+        btnCarregar.disabled = true;
+    }
+
+    consulta
         .get()
         .then((querySnapshot) => {
             formularios = [];
             querySnapshot.forEach((doc) => {
                 formularios.push({ id: doc.id, ...doc.data() });
             });
+
+            console.log(`${formularios.length} formulários carregados`);
+            if (todos) {
+                alert(
+                    `${formularios.length} relatórios carregados do Firestore!`
+                );
+            }
+
             atualizarLista();
         })
         .catch((error) => {
             console.error("Erro ao carregar formulários:", error);
+            alert("Erro ao carregar formulários: " + error.message);
             formularios = [];
             atualizarLista();
+        })
+        .finally(() => {
+            // Restaura botão se necessário
+            if (btnCarregar && todos) {
+                btnCarregar.textContent = "📄 Todos os Relatórios";
+                btnCarregar.disabled = false;
+            }
         });
+}
+
+// Função específica para carregar todos os relatórios
+function carregarTodosRelatorios() {
+    carregarFormularios(true);
 }
 
 // NOVA FUNÇÃO: Upload de imagem para Storage
@@ -248,6 +278,19 @@ async function excluirFormulario(id) {
 function atualizarLista() {
     const lista = document.getElementById("lista-formularios");
     lista.innerHTML = "";
+
+    // Adiciona contador de formulários
+    if (formularios.length > 0) {
+        const contador = document.createElement("li");
+        contador.className = "mb-3 text-center";
+        contador.innerHTML = `<small class="text-muted">📊 ${
+            formularios.length
+        } formulário${formularios.length > 1 ? "s" : ""} carregado${
+            formularios.length > 1 ? "s" : ""
+        }</small>`;
+        lista.appendChild(contador);
+    }
+
     formularios.forEach((form) => {
         const li = document.createElement("li");
         li.className = "mb-3";
