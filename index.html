@@ -16,6 +16,9 @@
   <div class="text-center">
     <img src="img/logo.png" alt="Logo" style="max-width: 100px; height: auto; margin-bottom: 10px;">
     <h5 class="titulo-formularios">Formulários Salvos</h5>
+    <button id="btn-todos-relatorios" class="btn btn-sm btn-outline-primary mb-3" onclick="carregarTodosRelatorios()" style="font-size: 12px;">
+      📄 Todos os Relatórios
+    </button>
     <ul id="lista-formularios" class="list-unstyled"></ul>
   </div>
   <div class="text-center mt-3 small text-muted" id="dataHoraPainel"></div>
@@ -116,6 +119,7 @@
         <label for="multi-upload" class="btn btn-adicionar-imagem">+ Imagens</label>
         <button type="button" class="btn btn-salvar" onclick="salvarFormulario()">💾 Salvar</button>
         <button type="button" class="btn btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
+
       </div>
     </form>
 
@@ -155,6 +159,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+
 
 <!-- script principal -->
 <script src="script.js"></script>
