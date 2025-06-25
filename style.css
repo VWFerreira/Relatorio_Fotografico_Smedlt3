@@ -531,6 +531,11 @@ button,
     color: #fff;
 }
 
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107, #ff9800); /* Amarelo */
+    color: #000;
+}
+
 .painel-rel {
     display: flex;
     align-items: center;
