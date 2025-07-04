@@ -845,7 +845,7 @@ function ajustarAlturaTextarea(textarea) {
     textarea.style.height = Math.max(40, textarea.scrollHeight) + "px";
 }
 
-// FUNÇÃO: Preview com ajuste automático do container
+// FUNÇÃO: Preview com ajuste automático do container e ordem
 function previewFile(file, img, cardId, placeholder) {
     fotosTemporarias.set(cardId, file);
 
@@ -861,6 +861,9 @@ function previewFile(file, img, cardId, placeholder) {
                 dropArea.style.height = "auto";
                 dropArea.style.minHeight = "auto";
             }
+
+            // Adiciona atributo de ordem
+            img.setAttribute("data-order", cardId.split("_")[2]);
         };
         img.src = e.target.result;
     };
@@ -896,18 +899,27 @@ function excluirCardFoto(cardId) {
     }
 }
 
-// FUNÇÃO MODIFICADA: Adicionar fotos (agora 2 por vez)
+// FUNÇÃO MODIFICADA: Adicionar fotos (agora 2 por vez e em ordem sequencial)
 function adicionarFotos(arquivos = []) {
     if (arquivos.length === 0) {
         criarCardFoto();
         return;
     }
 
-    arquivos = Array.from(arquivos);
-    arquivos.forEach((arquivo) => {
-        const cardId = `new_${Date.now()}_${Math.random()
-            .toString(36)
-            .substr(2, 9)}`;
+    // Converte para array e ordena pela ordem de seleção
+    arquivos = Array.from(arquivos).sort((a, b) => {
+        // Se os arquivos têm lastModified, usa isso como critério
+        if (a.lastModified && b.lastModified) {
+            return a.lastModified - b.lastModified;
+        }
+        return 0; // mantém a ordem original se não tiver lastModified
+    });
+
+    // Processa cada arquivo em ordem
+    arquivos.forEach((arquivo, index) => {
+        console.log(`Processando arquivo ${index + 1}/${arquivos.length}`);
+
+        const cardId = `new_${Date.now()}_${index}`;
         criarCardFoto("", null, cardId);
 
         // Pega o card recém-criado
@@ -927,6 +939,9 @@ function adicionarFotos(arquivos = []) {
             previewFile(arquivo, img, cardId, placeholder);
         }
     });
+
+    // Ajusta a altura das textareas após adicionar todas as fotos
+    setTimeout(ajustarAlturaTextareas, 100);
 }
 
 function atualizarEndereco() {
