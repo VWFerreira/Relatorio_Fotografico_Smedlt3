@@ -239,7 +239,6 @@ legend {
     flex-direction: column;
     gap: 10px;
     page-break-inside: avoid;
-    break-inside: avoid;
 }
 
 /* Área de texto independente (fora do card da imagem) */
@@ -1309,4 +1308,384 @@ button,
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     max-width: fit-content;
     margin: 0 auto;
+}
+
+/* EDITOR DE IMAGEM */
+.modal-editor-imagem {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content-editor {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header-editor {
+    background: linear-gradient(135deg, #17468c, #0f2654);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header-editor h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.btn-fechar {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.btn-fechar:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body-editor {
+    padding: 0;
+    max-height: 70vh;
+    overflow: hidden;
+}
+
+.editor-container {
+    display: flex;
+    height: 70vh;
+}
+
+.canvas-container {
+    flex: 1;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: auto;
+}
+
+.canvas-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.controles-editor {
+    width: 350px;
+    background: #f8f9fa;
+    padding: 20px;
+    overflow-y: auto;
+    border-left: 1px solid #dee2e6;
+}
+
+.grupo-controle {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.grupo-controle:last-child {
+    border-bottom: none;
+}
+
+.grupo-controle label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.controles-redimensionar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.controles-redimensionar input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.controles-redimensionar span {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.controles-rotacao {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-rotacao {
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-rotacao:hover {
+    background: #17468c;
+    color: white;
+    border-color: #17468c;
+}
+
+.controles-corte {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-corte {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-corte:hover {
+    background: #218838;
+}
+
+.controles-filtros {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-filtro {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.3s;
+}
+
+.btn-filtro:hover {
+    background: #5a6268;
+}
+
+.controles-ajuste {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.controles-ajuste input[type="range"] {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: #dee2e6;
+    outline: none;
+}
+
+.controles-ajuste input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #17468c;
+    cursor: pointer;
+}
+
+.controles-ajuste input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #17468c;
+    cursor: pointer;
+    border: none;
+}
+
+.controles-ajuste span {
+    font-size: 12px;
+    color: #6c757d;
+    min-width: 60px;
+}
+
+.btn-aplicar {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.btn-aplicar:hover {
+    background: #0056b3;
+}
+
+.modal-footer-editor {
+    background: #f8f9fa;
+    padding: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid #dee2e6;
+}
+
+.btn-salvar-edicao {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-salvar-edicao:hover {
+    background: #218838;
+}
+
+.btn-cancelar {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-cancelar:hover {
+    background: #5a6268;
+}
+
+/* Botão de edição na imagem */
+.btn-editar-imagem {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(23, 70, 140, 0.9);
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.3s;
+    z-index: 10;
+    backdrop-filter: blur(5px);
+}
+
+.btn-editar-imagem:hover {
+    background: rgba(23, 70, 140, 1);
+    transform: scale(1.1);
+}
+
+/* Botão de trocar imagem */
+.btn-trocar-imagem {
+    position: absolute;
+    top: 10px;
+    right: 55px;
+    background: rgba(40, 167, 69, 0.9);
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.3s;
+    z-index: 10;
+    backdrop-filter: blur(5px);
+}
+
+.btn-trocar-imagem:hover {
+    background: rgba(40, 167, 69, 1);
+    transform: scale(1.1);
+}
+
+/* Ajustes para o drop-area com botão de edição */
+.drop-area-2 {
+    position: relative;
+}
+
+/* Responsividade do editor */
+@media (max-width: 768px) {
+    .editor-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .controles-editor {
+        width: 100%;
+        max-height: 300px;
+    }
+
+    .modal-content-editor {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .controles-redimensionar,
+    .controles-rotacao,
+    .controles-corte,
+    .controles-filtros {
+        justify-content: center;
+    }
 }
