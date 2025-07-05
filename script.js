@@ -19,6 +19,14 @@ let formularios = [];
 let idAtual = null;
 let fotosTemporarias = new Map();
 
+// Variáveis globais para corte
+let corteAtivo = false;
+let corteInicio = null;
+let corteFim = null;
+let corteRetangulo = null;
+let corteCardIdAtual = null;
+let imagemOriginalEditor = null; // NOVO: guarda a imagem original do editor
+
 // REMOVIDO: window.onload duplicado
 // A inicialização agora acontece apenas no DOMContentLoaded
 
@@ -808,8 +816,11 @@ function configurarEventosCard(card, cardId) {
     });
 
     // Click para selecionar
-    dropArea.addEventListener("click", () => {
-        input.click();
+    dropArea.addEventListener("click", (e) => {
+        // Só abre o seletor se não há imagem carregada
+        if (img.style.display === "none" || !img.src) {
+            input.click();
+        }
     });
 
     // Input change
@@ -864,10 +875,386 @@ function previewFile(file, img, cardId, placeholder) {
 
             // Adiciona atributo de ordem
             img.setAttribute("data-order", cardId.split("_")[2]);
+
+            // Adiciona botão de edição
+            adicionarBotaoEdicao(img, cardId);
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+}
+
+// NOVA FUNÇÃO: Adicionar botão de edição
+function adicionarBotaoEdicao(img, cardId) {
+    const dropArea = img.closest(".drop-area-2");
+    if (!dropArea) return;
+
+    // Remove botões existentes se houver
+    const botoesExistentes = dropArea.querySelectorAll(
+        ".btn-editar-imagem, .btn-trocar-imagem"
+    );
+    botoesExistentes.forEach((btn) => btn.remove());
+
+    // Cria botão de edição
+    const botaoEditar = document.createElement("button");
+    botaoEditar.className = "btn-editar-imagem";
+    botaoEditar.innerHTML = '<i class="bi bi-pencil-square"></i>';
+    botaoEditar.title = "Editar imagem";
+    botaoEditar.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation(); // Impede que o clique propague para a dropArea
+        abrirEditorImagem(img, cardId);
+    };
+
+    // Cria botão de trocar imagem
+    const botaoTrocar = document.createElement("button");
+    botaoTrocar.className = "btn-trocar-imagem";
+    botaoTrocar.innerHTML = '<i class="bi bi-arrow-repeat"></i>';
+    botaoTrocar.title = "Trocar imagem";
+    botaoTrocar.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const input = document.querySelector(`#upload-${cardId}`);
+        if (input) input.click();
+    };
+
+    dropArea.appendChild(botaoEditar);
+    dropArea.appendChild(botaoTrocar);
+}
+
+// NOVA FUNÇÃO: Abrir editor de imagem
+function abrirEditorImagem(img, cardId) {
+    // Cria modal do editor
+    const modal = document.createElement("div");
+    modal.className = "modal-editor-imagem";
+    modal.innerHTML = `
+        <div class="modal-content-editor">
+            <div class="modal-header-editor">
+                <h5>Editor de Imagem</h5>
+                <button class="btn-fechar" onclick="fecharEditorImagem()">&times;</button>
+            </div>
+            <div class="modal-body-editor">
+                <div class="editor-container">
+                    <div class="canvas-container">
+                        <canvas id="canvas-editor-${cardId}"></canvas>
+                    </div>
+                    <div class="controles-editor">
+                        <div class="grupo-controle">
+                            <label>Redimensionar:</label>
+                            <div class="controles-redimensionar">
+                                <input type="number" id="largura-${cardId}" placeholder="Largura" min="100" max="2000">
+                                <span>x</span>
+                                <input type="number" id="altura-${cardId}" placeholder="Altura" min="100" max="2000">
+                                <button onclick="redimensionarImagem('${cardId}')" class="btn-aplicar">Aplicar</button>
+                            </div>
+                        </div>
+                        
+                        <div class="grupo-controle">
+                            <label>Rotacionar:</label>
+                            <div class="controles-rotacao">
+                                <button onclick="rotacionarImagem('${cardId}', -90)" class="btn-rotacao">
+                                    <i class="bi bi-arrow-counterclockwise"></i> -90°
+                                </button>
+                                <button onclick="rotacionarImagem('${cardId}', 90)" class="btn-rotacao">
+                                    <i class="bi bi-arrow-clockwise"></i> +90°
+                                </button>
+                                <button onclick="rotacionarImagem('${cardId}', 180)" class="btn-rotacao">
+                                    <i class="bi bi-arrow-repeat"></i> 180°
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grupo-controle">
+                            <label>Cortar:</label>
+                            <div class="controles-corte">
+                                <button onclick="ativarCorte('${cardId}')" class="btn-corte">
+                                    <i class="bi bi-crop"></i> Ativar Corte
+                                </button>
+                                <button onclick="aplicarCorte('${cardId}')" class="btn-aplicar" id="btn-aplicar-corte-${cardId}" style="display: none;">
+                                    Aplicar Corte
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grupo-controle">
+                            <label>Filtros:</label>
+                            <div class="controles-filtros">
+                                <button onclick="aplicarFiltro('${cardId}', 'grayscale')" class="btn-filtro">Preto e Branco</button>
+                                <button onclick="aplicarFiltro('${cardId}', 'sepia')" class="btn-filtro">Sépia</button>
+                                <button onclick="aplicarFiltro('${cardId}', 'invert')" class="btn-filtro">Inverter</button>
+                                <button onclick="aplicarFiltro('${cardId}', 'brightness')" class="btn-filtro">Brilho</button>
+                                <button onclick="aplicarFiltro('${cardId}', 'contrast')" class="btn-filtro">Contraste</button>
+                            </div>
+                        </div>
+                        
+                        <div class="grupo-controle">
+                            <label>Brilho/Contraste:</label>
+                            <div class="controles-ajuste">
+                                <input type="range" id="brilho-${cardId}" min="0" max="200" value="100" onchange="ajustarBrilho('${cardId}')">
+                                <span>Brilho</span>
+                            </div>
+                            <div class="controles-ajuste">
+                                <input type="range" id="contraste-${cardId}" min="0" max="200" value="100" onchange="ajustarContraste('${cardId}')">
+                                <span>Contraste</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer-editor">
+                <button onclick="salvarEdicaoImagem('${cardId}')" class="btn-salvar-edicao">Salvar</button>
+                <button onclick="cancelarEdicaoImagem('${cardId}')" class="btn-cancelar">Cancelar</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Salva a imagem original para corte
+    imagemOriginalEditor = new Image();
+    imagemOriginalEditor.src = img.src;
+    imagemOriginalEditor.onload = () => {
+        inicializarCanvas(img, cardId);
+    };
+}
+
+// NOVA FUNÇÃO: Inicializar canvas
+function inicializarCanvas(img, cardId) {
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    const ctx = canvas.getContext("2d");
+
+    // Define tamanho do canvas
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+
+    // Desenha a imagem original
+    ctx.drawImage(img, 0, 0);
+
+    // Preenche campos de dimensões
+    document.getElementById(`largura-${cardId}`).value = img.naturalWidth;
+    document.getElementById(`altura-${cardId}`).value = img.naturalHeight;
+
+    // Armazena contexto para uso posterior
+    canvas.dataset.ctx = ctx;
+}
+
+// NOVA FUNÇÃO: Redimensionar imagem
+function redimensionarImagem(cardId) {
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    const ctx = canvas.getContext("2d");
+    const largura = parseInt(
+        document.getElementById(`largura-${cardId}`).value
+    );
+    const altura = parseInt(document.getElementById(`altura-${cardId}`).value);
+
+    if (largura && altura) {
+        // Cria canvas temporário
+        const tempCanvas = document.createElement("canvas");
+        const tempCtx = tempCanvas.getContext("2d");
+
+        tempCanvas.width = largura;
+        tempCanvas.height = altura;
+
+        // Redimensiona
+        tempCtx.drawImage(canvas, 0, 0, largura, altura);
+
+        // Atualiza canvas principal
+        canvas.width = largura;
+        canvas.height = altura;
+        ctx.drawImage(tempCanvas, 0, 0);
+    }
+}
+
+// NOVA FUNÇÃO: Rotacionar imagem
+function rotacionarImagem(cardId, angulo) {
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    const ctx = canvas.getContext("2d");
+
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d");
+
+    // Calcula novas dimensões
+    const rad = (angulo * Math.PI) / 180;
+    const cos = Math.abs(Math.cos(rad));
+    const sin = Math.abs(Math.sin(rad));
+
+    const novaLargura = canvas.width * cos + canvas.height * sin;
+    const novaAltura = canvas.width * sin + canvas.height * cos;
+
+    tempCanvas.width = novaLargura;
+    tempCanvas.height = novaAltura;
+
+    // Aplica rotação
+    tempCtx.translate(novaLargura / 2, novaAltura / 2);
+    tempCtx.rotate(rad);
+    tempCtx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+
+    // Atualiza canvas principal
+    canvas.width = novaLargura;
+    canvas.height = novaAltura;
+    ctx.drawImage(tempCanvas, 0, 0);
+
+    // Atualiza campos de dimensões
+    document.getElementById(`largura-${cardId}`).value = novaLargura;
+    document.getElementById(`altura-${cardId}`).value = novaAltura;
+}
+
+// NOVA FUNÇÃO: Aplicar filtros
+function aplicarFiltro(cardId, tipo) {
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    switch (tipo) {
+        case "grayscale":
+            for (let i = 0; i < data.length; i += 4) {
+                const gray =
+                    data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                data[i] = gray;
+                data[i + 1] = gray;
+                data[i + 2] = gray;
+            }
+            break;
+        case "sepia":
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                data[i] = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
+                data[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
+                data[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
+            }
+            break;
+        case "invert":
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+            }
+            break;
+        case "brightness":
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = Math.min(255, data[i] + 40);
+                data[i + 1] = Math.min(255, data[i + 1] + 40);
+                data[i + 2] = Math.min(255, data[i + 2] + 40);
+            }
+            break;
+        case "contrast":
+            const factor = (259 * (128 + 50)) / (255 * (259 - 50));
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = Math.min(
+                    255,
+                    Math.max(0, factor * (data[i] - 128) + 128)
+                );
+                data[i + 1] = Math.min(
+                    255,
+                    Math.max(0, factor * (data[i + 1] - 128) + 128)
+                );
+                data[i + 2] = Math.min(
+                    255,
+                    Math.max(0, factor * (data[i + 2] - 128) + 128)
+                );
+            }
+            break;
+    }
+    ctx.putImageData(imageData, 0, 0);
+}
+
+// NOVA FUNÇÃO: Ajustar brilho
+function ajustarBrilho(cardId) {
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    const ctx = canvas.getContext("2d");
+    const valor = document.getElementById(`brilho-${cardId}`).value;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.min(255, data[i] * (valor / 100));
+        data[i + 1] = Math.min(255, data[i + 1] * (valor / 100));
+        data[i + 2] = Math.min(255, data[i + 2] * (valor / 100));
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+}
+
+// NOVA FUNÇÃO: Ajustar contraste
+function ajustarContraste(cardId) {
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    const ctx = canvas.getContext("2d");
+    const valor = document.getElementById(`contraste-${cardId}`).value;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+        data[i] = Math.min(
+            255,
+            Math.max(0, (data[i] - 128) * (valor / 100) + 128)
+        );
+        data[i + 1] = Math.min(
+            255,
+            Math.max(0, (data[i + 1] - 128) * (valor / 100) + 128)
+        );
+        data[i + 2] = Math.min(
+            255,
+            Math.max(0, (data[i + 2] - 128) * (valor / 100) + 128)
+        );
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+}
+
+// NOVA FUNÇÃO: Salvar edição
+function salvarEdicaoImagem(cardId) {
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    const img = document.querySelector(
+        `img[data-order="${cardId.split("_")[2]}"]`
+    );
+
+    if (img && canvas) {
+        // Converte canvas para blob
+        canvas.toBlob(
+            (blob) => {
+                // Cria novo arquivo
+                const novoArquivo = new File(
+                    [blob],
+                    `imagem_editada_${Date.now()}.jpg`,
+                    {
+                        type: "image/jpeg",
+                    }
+                );
+
+                // Atualiza foto temporária
+                fotosTemporarias.set(cardId, novoArquivo);
+
+                // Atualiza imagem
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(novoArquivo);
+            },
+            "image/jpeg",
+            0.9
+        );
+    }
+
+    fecharEditorImagem();
+}
+
+// NOVA FUNÇÃO: Cancelar edição
+function cancelarEdicaoImagem(cardId) {
+    fecharEditorImagem();
+}
+
+// NOVA FUNÇÃO: Fechar editor
+function fecharEditorImagem() {
+    const modal = document.querySelector(".modal-editor-imagem");
+    if (modal) {
+        modal.remove();
+    }
 }
 
 // FUNÇÃO: Excluir card de foto (estrutura com botões externos)
@@ -1304,3 +1691,225 @@ console.log(`
 `);
 
 // AUTO-VERIFICAÇÃO REMOVIDA para evitar duplicações
+
+function desenharCorte(canvas) {
+    const ctx = canvas.getContext("2d");
+    // Redesenha a imagem original (sempre a original, não o canvas)
+    if (!imagemOriginalEditor) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(imagemOriginalEditor, 0, 0, canvas.width, canvas.height);
+
+    // Desenha a área de corte se houver seleção
+    if (corteRetangulo && corteRetangulo.w > 0 && corteRetangulo.h > 0) {
+        ctx.save();
+        // Área selecionada com borda verde
+        ctx.strokeStyle = "#28a745";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(
+            corteRetangulo.x,
+            corteRetangulo.y,
+            corteRetangulo.w,
+            corteRetangulo.h
+        );
+
+        // Área escura fora da seleção
+        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(
+            corteRetangulo.x,
+            corteRetangulo.y,
+            corteRetangulo.w,
+            corteRetangulo.h
+        );
+        ctx.drawImage(
+            imagemOriginalEditor,
+            corteRetangulo.x,
+            corteRetangulo.y,
+            corteRetangulo.w,
+            corteRetangulo.h,
+            corteRetangulo.x,
+            corteRetangulo.y,
+            corteRetangulo.w,
+            corteRetangulo.h
+        );
+
+        ctx.restore();
+    } else if (corteInicio && corteFim) {
+        // Seleção em andamento (durante o arrasto)
+        ctx.save();
+        ctx.strokeStyle = "#28a745";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.strokeRect(
+            Math.min(corteInicio.x, corteFim.x),
+            Math.min(corteInicio.y, corteFim.y),
+            Math.abs(corteFim.x - corteInicio.x),
+            Math.abs(corteFim.y - corteInicio.y)
+        );
+        ctx.restore();
+    }
+}
+
+function ativarCorte(cardId) {
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    if (!canvas) return;
+    if (!imagemOriginalEditor || !imagemOriginalEditor.complete) {
+        alert("Aguarde a imagem carregar completamente antes de cortar.");
+        return;
+    }
+    corteAtivo = true;
+    corteCardIdAtual = cardId;
+    corteInicio = null;
+    corteFim = null;
+    corteRetangulo = null;
+
+    // Esconde o botão de aplicar corte até ter seleção
+    const btnAplicar = document.getElementById(`btn-aplicar-corte-${cardId}`);
+    if (btnAplicar) btnAplicar.style.display = "none";
+
+    // Redesenha a imagem original
+    desenharCorte(canvas);
+
+    // Adiciona eventos de mouse
+    canvas.style.cursor = "crosshair";
+    let arrastando = false;
+
+    canvas.onmousedown = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.round(
+            (e.clientX - rect.left) * (canvas.width / rect.width)
+        );
+        const y = Math.round(
+            (e.clientY - rect.top) * (canvas.height / rect.height)
+        );
+
+        // Verifica se clicou dentro da área de corte existente para movê-la
+        if (
+            corteRetangulo &&
+            x >= corteRetangulo.x &&
+            x <= corteRetangulo.x + corteRetangulo.w &&
+            y >= corteRetangulo.y &&
+            y <= corteRetangulo.y + corteRetangulo.h
+        ) {
+            // Mover área existente
+            canvas.style.cursor = "move";
+            arrastando = "mover";
+            corteInicio = { x: x - corteRetangulo.x, y: y - corteRetangulo.y };
+        } else {
+            // Nova seleção
+            corteInicio = { x, y };
+            corteFim = null;
+            corteRetangulo = null;
+            arrastando = "selecionar";
+            canvas.style.cursor = "crosshair";
+        }
+        console.log("Corte: mouse down", { x, y, arrastando });
+    };
+
+    canvas.onmousemove = (e) => {
+        if (!corteInicio) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.round(
+            (e.clientX - rect.left) * (canvas.width / rect.width)
+        );
+        const y = Math.round(
+            (e.clientY - rect.top) * (canvas.height / rect.height)
+        );
+
+        if (arrastando === "mover" && corteRetangulo) {
+            // Mover área existente
+            corteRetangulo.x = Math.max(
+                0,
+                Math.min(canvas.width - corteRetangulo.w, x - corteInicio.x)
+            );
+            corteRetangulo.y = Math.max(
+                0,
+                Math.min(canvas.height - corteRetangulo.h, y - corteInicio.y)
+            );
+        } else if (arrastando === "selecionar") {
+            // Nova seleção
+            corteFim = { x, y };
+        }
+
+        desenharCorte(canvas);
+    };
+
+    canvas.onmouseup = (e) => {
+        if (!corteInicio) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.round(
+            (e.clientX - rect.left) * (canvas.width / rect.width)
+        );
+        const y = Math.round(
+            (e.clientY - rect.top) * (canvas.height / rect.height)
+        );
+
+        if (arrastando === "selecionar") {
+            corteFim = { x, y };
+            corteRetangulo = {
+                x: Math.min(corteInicio.x, corteFim.x),
+                y: Math.min(corteInicio.y, corteFim.y),
+                w: Math.abs(corteFim.x - corteInicio.x),
+                h: Math.abs(corteFim.y - corteInicio.y),
+            };
+        }
+
+        desenharCorte(canvas);
+        canvas.style.cursor = "crosshair";
+        arrastando = false;
+
+        // Mostra botão se área válida
+        const btnAplicar = document.getElementById(
+            `btn-aplicar-corte-${cardId}`
+        );
+        if (
+            btnAplicar &&
+            corteRetangulo &&
+            corteRetangulo.w > 10 &&
+            corteRetangulo.h > 10
+        ) {
+            btnAplicar.style.display = "";
+        } else if (btnAplicar) {
+            btnAplicar.style.display = "none";
+        }
+        console.log("Corte: mouse up", corteRetangulo);
+    };
+}
+
+function aplicarCorte(cardId) {
+    if (!corteAtivo || corteCardIdAtual !== cardId || !corteRetangulo) return;
+    const canvas = document.getElementById(`canvas-editor-${cardId}`);
+    const ctx = canvas.getContext("2d");
+    const { x, y, w, h } = corteRetangulo;
+    if (w < 10 || h < 10) return; // Corte mínimo
+    // Pega a imagem cortada da imagem original
+    if (!imagemOriginalEditor) return;
+    // Cria um canvas temporário para cortar
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = w;
+    tempCanvas.height = h;
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx.drawImage(imagemOriginalEditor, x, y, w, h, 0, 0, w, h);
+    // Redimensiona o canvas principal
+    canvas.width = w;
+    canvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(tempCanvas, 0, 0);
+    // Atualiza a imagem original para o novo corte
+    imagemOriginalEditor = new Image();
+    imagemOriginalEditor.src = canvas.toDataURL();
+    // Limpa seleção
+    corteAtivo = false;
+    corteInicio = null;
+    corteFim = null;
+    corteRetangulo = null;
+    corteCardIdAtual = null;
+    canvas.style.cursor = "default";
+    canvas.onmousedown = null;
+    canvas.onmousemove = null;
+    canvas.onmouseup = null;
+    // Esconde botão de aplicar corte
+    const btnAplicar = document.getElementById(`btn-aplicar-corte-${cardId}`);
+    if (btnAplicar) btnAplicar.style.display = "none";
+}
